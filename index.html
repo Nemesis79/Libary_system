@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบยืมคืนหนังสือ</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+
+  <header class="w-full px-4 pt-5 sm:px-7 lg:px-10">
+    <div class="canva-banner book-mark mx-auto max-w-7xl rounded-[28px] px-6 py-7 shadow-[0_18px_40px_rgba(41,72,156,.14)] sm:px-9">
+      <div class="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <div class="max-w-2xl">
+          <div class="mb-3 flex items-center gap-2">
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white"><i data-lucide="book-open-check" width="20" height="20"></i></span>
+            <span class="canva-text text-sm font-bold tracking-wide">ระบบจัดการห้องสมุด</span>
+          </div>
+          <h1 class="canva-text text-2xl sm:text-3xl font-extrabold leading-tight">ระบบยืมคืนหนังสือ</h1>
+          <p class="canva-text mt-2 max-w-xl leading-relaxed">เชื่อมต่อฐานข้อมูล Supabase แบบเรียลไทม์</p>
+        </div>
+        <div id="connection-status" class="status-chip status-chip--pending flex shrink-0 items-center gap-3 rounded-2xl px-4 py-3 text-white backdrop-blur-sm">
+          <span id="status-dot" class="status-dot"></span>
+          <div>
+            <p id="status-title" class="canva-text text-sm font-bold">กำลังตรวจสอบการเชื่อมต่อ…</p>
+            <p id="status-copy" class="canva-text text-xs text-white/85">โปรดรอสักครู่</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="w-full px-4 pb-10 pt-6 sm:px-7 lg:px-10">
+    <div class="mx-auto max-w-7xl">
+
+      <section aria-label="สรุปข้อมูลหนังสือ" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article class="canva-card reveal rounded-2xl border border-blue-100 p-5 shadow-sm" style="animation-delay:.05s">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="canva-text text-sm font-semibold">หนังสือทั้งหมด</p>
+              <p id="total-count" class="mt-2 text-3xl font-extrabold text-[#3f3a8f]" aria-live="polite">0</p>
+            </div>
+            <span class="rounded-xl bg-indigo-100 p-3 text-indigo-700"><i data-lucide="library-big" width="22" height="22"></i></span>
+          </div>
+        </article>
+        <article class="canva-card reveal rounded-2xl border border-emerald-100 p-5 shadow-sm" style="animation-delay:.1s">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="canva-text text-sm font-semibold">พร้อมให้ยืม</p>
+              <p id="available-count" class="mt-2 text-3xl font-extrabold text-[#148360]" aria-live="polite">0</p>
+            </div>
+            <span class="rounded-xl bg-emerald-100 p-3 text-emerald-700"><i data-lucide="circle-check-big" width="22" height="22"></i></span>
+          </div>
+        </article>
+        <article class="canva-card reveal rounded-2xl border border-blue-100 p-5 shadow-sm" style="animation-delay:.15s">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="canva-text text-sm font-semibold">กำลังถูกยืม</p>
+              <p id="borrowed-count" class="mt-2 text-3xl font-extrabold text-[#1b4fa3]" aria-live="polite">0</p>
+            </div>
+            <span class="rounded-xl bg-blue-100 p-3 text-blue-700"><i data-lucide="book-open" width="22" height="22"></i></span>
+          </div>
+        </article>
+        <article class="canva-card reveal rounded-2xl border border-orange-100 p-5 shadow-sm" style="animation-delay:.2s">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="canva-text text-sm font-semibold">เกินกำหนดคืน</p>
+              <p id="overdue-count" class="mt-2 text-3xl font-extrabold text-[#b85718]" aria-live="polite">0</p>
+            </div>
+            <span class="rounded-xl bg-orange-100 p-3 text-orange-700"><i data-lucide="calendar-clock" width="22" height="22"></i></span>
+          </div>
+        </article>
+      </section>
+
+      <nav aria-label="แท็บหลัก" class="canva-panel reveal mt-6 flex gap-2 rounded-2xl border p-2 shadow-sm" style="animation-delay:.24s">
+        <button class="main-tab is-active flex-1 rounded-xl px-4 py-3 text-sm font-bold" type="button" data-tab="books">
+          <i data-lucide="book-marked" width="16" height="16" class="mr-1.5 inline"></i>หนังสือ
+        </button>
+        <button class="main-tab flex-1 rounded-xl px-4 py-3 text-sm font-bold" type="button" data-tab="history">
+          <i data-lucide="history" width="16" height="16" class="mr-1.5 inline"></i>ประวัติการยืม–คืน
+        </button>
+      </nav>
+
+      <!-- ===== แท็บหนังสือ ===== -->
+      <section id="tab-books" class="mt-6">
+        <div class="canva-panel reveal rounded-[24px] border p-5 shadow-sm sm:p-6" style="animation-delay:.3s">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="relative w-full lg:max-w-xs">
+              <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-[#7b88a4]" width="18" height="18"></i>
+              <input id="book-search" class="form-control pl-10" type="search" placeholder="ค้นหาชื่อหนังสือ ผู้แต่ง หมวดหมู่…">
+            </div>
+            <nav aria-label="ตัวกรองหนังสือ" class="flex gap-5 overflow-x-auto">
+              <button class="filter-tab is-active shrink-0 py-2 text-sm" type="button" data-filter="all">ทั้งหมด</button>
+              <button class="filter-tab shrink-0 py-2 text-sm" type="button" data-filter="available">พร้อมให้ยืม</button>
+              <button class="filter-tab shrink-0 py-2 text-sm" type="button" data-filter="borrowed">กำลังถูกยืม</button>
+              <button class="filter-tab shrink-0 py-2 text-sm" type="button" data-filter="overdue">เกินกำหนด</button>
+            </nav>
+            <button id="open-add-book" class="canva-button flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold shadow-sm transition hover:brightness-95" type="button">
+              <i data-lucide="plus-circle" width="18" height="18"></i>เพิ่มหนังสือใหม่
+            </button>
+          </div>
+        </div>
+
+        <div id="book-grid" class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"></div>
+
+        <div id="book-empty" class="canva-panel mt-5 hidden rounded-[24px] border px-6 py-16 text-center shadow-sm">
+          <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e9efff] text-[#3056d3]"><i data-lucide="library-big" width="28" height="28"></i></span>
+          <h3 class="canva-text mt-4 font-bold">ยังไม่มีหนังสือในระบบ</h3>
+          <p class="canva-text mx-auto mt-1 max-w-sm text-sm leading-relaxed">เริ่มต้นเพิ่มหนังสือเล่มแรกของคุณด้วยปุ่ม "เพิ่มหนังสือใหม่"</p>
+        </div>
+      </section>
+
+      <!-- ===== แท็บประวัติ ===== -->
+      <section id="tab-history" class="mt-6 hidden">
+        <div class="canva-panel reveal overflow-hidden rounded-[24px] border shadow-sm">
+          <div class="border-b border-[#dce4f5] px-5 py-5 sm:px-6">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="canva-text font-bold">ประวัติการยืม–คืน</h2>
+                <p class="canva-text mt-0.5 text-sm">รายการล่าสุดจะแสดงอยู่ด้านบนสุด</p>
+              </div>
+              <button id="open-clear-history" class="shrink-0 flex items-center justify-center gap-2 rounded-xl border-2 border-red-200 px-4 py-2.5 text-sm font-bold text-red-500 transition hover:bg-red-50" type="button">
+                <i data-lucide="trash-2" width="16" height="16"></i>ล้างประวัติทั้งหมด
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="loan-table w-full min-w-[640px] text-left">
+              <thead>
+                <tr class="bg-[#f8faff] text-xs uppercase tracking-wide text-[#697792]">
+                  <th class="canva-text px-5 py-4 font-bold sm:px-6">หนังสือ</th>
+                  <th class="canva-text px-4 py-4 font-bold">ผู้ยืม / ชั้น</th>
+                  <th class="canva-text px-4 py-4 font-bold">การกระทำ</th>
+                  <th class="canva-text px-4 py-4 font-bold">วันเวลา</th>
+                </tr>
+              </thead>
+              <tbody id="history-list"></tbody>
+            </table>
+          </div>
+          <div id="history-empty" class="px-6 py-16 text-center">
+            <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e9efff] text-[#3056d3]"><i data-lucide="history" width="28" height="28"></i></span>
+            <h3 class="canva-text mt-4 font-bold">ยังไม่มีประวัติ</h3>
+            <p class="canva-text mx-auto mt-1 max-w-sm text-sm leading-relaxed">เมื่อมีการยืมหรือคืนหนังสือ ประวัติจะปรากฏที่นี่</p>
+          </div>
+        </div>
+      </section>
+
+      <footer class="mt-7 flex items-center justify-center gap-2 text-center text-sm text-[#71809d]">
+        <i data-lucide="shield-check" width="16" height="16"></i>
+        <p class="canva-text">ข้อมูลถูกเก็บบน Supabase ของคุณเอง</p>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<!-- ===== Modal: เพิ่มหนังสือใหม่ ===== -->
+<div id="add-book-modal" class="modal-overlay hidden">
+  <div class="modal-box reveal">
+    <div class="mb-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e9efff] text-[#3056d3]"><i data-lucide="plus-circle" width="22" height="22"></i></span>
+        <h2 class="canva-text font-bold">เพิ่มหนังสือใหม่</h2>
+      </div>
+      <button class="modal-close" type="button" data-close-modal="add-book-modal"><i data-lucide="x" width="20" height="20"></i></button>
+    </div>
+    <form id="add-book-form" novalidate>
+      <div class="space-y-4">
+        <div>
+          <label class="canva-text mb-1.5 block text-sm font-semibold" for="new-title">ชื่อหนังสือ</label>
+          <input id="new-title" class="form-control" type="text" required>
+        </div>
+        <div>
+          <label class="canva-text mb-1.5 block text-sm font-semibold" for="new-author">ผู้แต่ง</label>
+          <input id="new-author" class="form-control" type="text">
+        </div>
+        <div>
+          <label class="canva-text mb-1.5 block text-sm font-semibold" for="new-category">หมวดหมู่</label>
+          <input id="new-category" class="form-control" type="text">
+        </div>
+      </div>
+      <button id="submit-add-book" class="canva-button mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-bold shadow-sm transition hover:brightness-95" type="submit">
+        <i data-lucide="save" width="18" height="18"></i><span>บันทึกหนังสือ</span>
+      </button>
+      <p id="add-book-message" class="mt-3 hidden rounded-xl px-3 py-2 text-sm font-medium" aria-live="polite"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: ยืมหนังสือ ===== -->
+<div id="borrow-modal" class="modal-overlay hidden">
+  <div class="modal-box reveal">
+    <div class="mb-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e9efff] text-[#3056d3]"><i data-lucide="book-marked" width="22" height="22"></i></span>
+        <div>
+          <h2 class="canva-text font-bold">ยืมหนังสือ</h2>
+          <p id="borrow-book-title" class="canva-text mt-0.5 text-sm text-[#71809d]"></p>
+        </div>
+      </div>
+      <button class="modal-close" type="button" data-close-modal="borrow-modal"><i data-lucide="x" width="20" height="20"></i></button>
+    </div>
+    <form id="borrow-form" novalidate>
+      <input type="hidden" id="borrow-book-id">
+      <div class="space-y-4">
+        <div>
+          <label class="canva-text mb-1.5 block text-sm font-semibold" for="borrow-name">ชื่อผู้ยืม</label>
+          <input id="borrow-name" class="form-control" type="text" required>
+        </div>
+        <div>
+          <label class="canva-text mb-1.5 block text-sm font-semibold" for="borrow-class">ชั้นเรียน</label>
+          <input id="borrow-class" class="form-control" type="text">
+        </div>
+        <div>
+          <label class="canva-text mb-1.5 block text-sm font-semibold" for="borrow-due">วันครบกำหนดคืน</label>
+          <input id="borrow-due" class="form-control" type="date" required>
+        </div>
+      </div>
+      <button id="submit-borrow" class="canva-button mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 font-bold shadow-sm transition hover:brightness-95" type="submit">
+        <i data-lucide="check" width="18" height="18"></i><span>ยืนยันการยืม</span>
+      </button>
+      <p id="borrow-message" class="mt-3 hidden rounded-xl px-3 py-2 text-sm font-medium" aria-live="polite"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Modal: ยืนยันการล้างประวัติ ===== -->
+<div id="clear-history-modal" class="modal-overlay hidden">
+  <div class="modal-box reveal" style="max-width:360px">
+    <div class="mb-4 flex items-center gap-3">
+      <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500"><i data-lucide="trash-2" width="20" height="20"></i></span>
+      <h2 class="canva-text font-bold">ยืนยันการล้างประวัติ</h2>
+    </div>
+    <p class="canva-text text-sm text-[#71809d]">
+      ต้องการลบ<span class="font-semibold text-[#344160]">ประวัติการยืม–คืนทั้งหมด</span>ใช่หรือไม่?
+      การลบนี้ไม่สามารถย้อนกลับได้ และจะไม่กระทบข้อมูลหนังสือหรือสถานะการยืมปัจจุบัน
+    </p>
+    <div class="mt-5 flex gap-2">
+      <button class="modal-secondary-btn flex-1 rounded-xl px-4 py-2.5 text-sm font-bold" type="button" data-close-modal="clear-history-modal">ยกเลิก</button>
+      <button id="confirm-clear-history-btn" class="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-95" type="button">ล้างประวัติ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: ยืนยันการลบหนังสือ ===== -->
+<div id="delete-modal" class="modal-overlay hidden">
+  <div class="modal-box reveal" style="max-width:360px">
+    <div class="mb-4 flex items-center gap-3">
+      <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500"><i data-lucide="trash-2" width="20" height="20"></i></span>
+      <h2 class="canva-text font-bold">ยืนยันการลบหนังสือ</h2>
+    </div>
+    <p class="canva-text text-sm text-[#71809d]">
+      ต้องการลบ "<span id="delete-book-title" class="font-semibold text-[#344160]"></span>" ออกจากระบบใช่หรือไม่?
+      การลบนี้ไม่สามารถย้อนกลับได้ (ประวัติการยืม–คืนเดิมของเล่มนี้จะยังคงอยู่)
+    </p>
+    <div class="mt-5 flex gap-2">
+      <button class="modal-secondary-btn flex-1 rounded-xl px-4 py-2.5 text-sm font-bold" type="button" data-close-modal="delete-modal">ยกเลิก</button>
+      <button id="confirm-delete-btn" class="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-95" type="button">ลบหนังสือ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Template: การ์ดหนังสือ ===== -->
+<template id="book-card-template">
+  <article class="canva-card book-card rounded-2xl border p-5 shadow-sm">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <p class="book-title truncate font-bold text-[#17265f]"></p>
+        <p class="book-author mt-0.5 text-sm text-[#71809d]"></p>
+      </div>
+      <span class="book-status status-pill shrink-0"></span>
+    </div>
+    <p class="book-category mt-2 inline-block rounded-full bg-[#f1f0ff] px-2.5 py-1 text-xs font-semibold text-[#5146c9]"></p>
+    <div class="book-borrow-info mt-3 hidden rounded-xl px-3 py-2 text-xs">
+      <p class="book-borrower-line font-semibold"></p>
+      <p class="book-due-line mt-0.5"></p>
+    </div>
+    <div class="mt-4 flex gap-2">
+      <button class="book-borrow-btn canva-button flex-1 rounded-xl px-3 py-2.5 text-sm font-bold transition hover:brightness-95" type="button">
+        <i data-lucide="book-marked" width="16" height="16" class="mr-1 inline"></i>ยืม
+      </button>
+      <button class="book-return-btn hidden flex-1 rounded-xl border-2 border-emerald-500 px-3 py-2.5 text-sm font-bold text-emerald-600 transition hover:bg-emerald-50" type="button">
+        <i data-lucide="rotate-ccw" width="16" height="16" class="mr-1 inline"></i>รับคืน
+      </button>
+      <button class="book-delete-btn shrink-0 rounded-xl border-2 border-red-200 px-3 py-2.5 text-sm font-bold text-red-500 transition hover:bg-red-50" type="button" title="ลบหนังสือ">
+        <i data-lucide="trash-2" width="16" height="16"></i>
+      </button>
+    </div>
+  </article>
+</template>
+
+<!-- ===== Template: แถวประวัติ ===== -->
+<template id="history-row-template">
+  <tr class="canva-card loan-row border-b border-[#e4eaf6] last:border-0">
+    <td class="px-5 py-4 sm:px-6"><p class="hist-book-title font-bold text-[#17265f]"></p></td>
+    <td data-label="ผู้ยืม / ชั้น" class="px-4 py-4"><p class="hist-borrower font-semibold text-[#344160]"></p></td>
+    <td data-label="การกระทำ" class="px-4 py-4"><span class="hist-action status-pill"></span></td>
+    <td data-label="วันเวลา" class="px-4 py-4"><p class="hist-date text-sm text-[#71809d]"></p></td>
+  </tr>
+</template>
+
+<script src="script.js"></script>
+</body>
+</html>
