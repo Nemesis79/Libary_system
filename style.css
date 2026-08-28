@@ -1,0 +1,210 @@
+:root {
+  --ink: #24205f;
+  --blue: #5146c9;
+  --sky: #eeeaff;
+  --mint: #22a884;
+  --paper: #ffffff;
+  --line: #ddd9f5;
+  --muted: #6d6a8f;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Noto Sans Thai", "Work Sans", sans-serif;
+  color: var(--ink);
+}
+.app-shell {
+  width: 100%;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 6% 4%, rgba(92, 139, 255, .18) 0 2px, transparent 3px),
+    radial-gradient(circle at 94% 10%, rgba(41, 176, 124, .14) 0 3px, transparent 4px),
+    linear-gradient(135deg, #eeeaff 0%, #fbfaff 46%, #effaf7 100%);
+}
+
+/* ===== Theme helper classes (ม่วง-น้ำเงิน) ===== */
+.canva-banner {
+  background: linear-gradient(135deg, var(--blue), #7c6fe0);
+}
+.canva-text { color: inherit; }
+.canva-banner .canva-text { color: #ffffff; }
+.canva-card,
+.canva-panel {
+  background: var(--paper);
+  border-color: var(--line);
+}
+.canva-button {
+  background: var(--blue);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+}
+.canva-tag {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: #ddf7eb;
+  color: #127451;
+}
+
+.book-mark { position: relative; overflow: hidden; }
+.book-mark::after {
+  content: "";
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  right: -40px;
+  top: -58px;
+  border: 16px solid rgba(255,255,255,.16);
+  border-radius: 50%;
+}
+
+/* ===== สถานะการเชื่อมต่อ ===== */
+.status-chip { background: rgba(255,255,255,.15); }
+.status-chip--pending { background: rgba(148, 150, 168, .35); }
+.status-chip--ok { background: rgba(34, 168, 132, .35); }
+.status-chip--error { background: rgba(217, 74, 74, .35); }
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #b7bccf;
+  box-shadow: 0 0 0 4px rgba(255,255,255,.18);
+  flex-shrink: 0;
+}
+.status-chip--ok .status-dot { background: #35d399; }
+.status-chip--error .status-dot { background: #ff6767; }
+
+/* ===== ฟอร์ม ===== */
+.form-control {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 11px 13px;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.form-control:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(48, 86, 211, .12);
+}
+input[type="date"] { min-height: 44px; color-scheme: light; }
+input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .8; }
+
+/* ===== แท็บ ===== */
+.main-tab {
+  background: transparent;
+  color: #6d7890;
+  border: none;
+  cursor: pointer;
+  transition: color .2s, background-color .2s;
+}
+.main-tab.is-active {
+  background: var(--sky);
+  color: var(--blue);
+}
+.filter-tab {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  color: #6d7890;
+  transition: color .2s, border-color .2s, background-color .2s;
+}
+.filter-tab:hover,
+.filter-tab:focus-visible { color: var(--blue); background: #f7f5ff; }
+.filter-tab.is-active {
+  color: var(--blue) !important;
+  border-color: var(--blue) !important;
+  font-weight: 700;
+}
+
+/* ===== สถานะ / ป้าย ===== */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: .75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.status-borrowed { color: #1e5a9d; background: #e5f1ff; }
+.status-overdue { color: #a94e14; background: #fff0df; }
+.status-returned,
+.status-available { color: #127451; background: #ddf7eb; }
+
+/* ===== การ์ดหนังสือ ===== */
+.book-card { transition: transform .18s ease, box-shadow .18s ease; }
+.book-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(41,72,156,.1); }
+
+/* ===== ตารางประวัติ ===== */
+.loan-row { transition: background .18s ease; }
+.loan-row:hover { background: #f7f9ff; }
+@media (max-width: 700px) {
+  .loan-table thead { display: none; }
+  .loan-table, .loan-table tbody, .loan-table tr, .loan-table td { display: block; width: 100%; }
+  .loan-table tr { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .loan-table td { border: 0; padding: 5px 0; }
+  .loan-table td[data-label]::before {
+    content: attr(data-label);
+    display: inline-block;
+    min-width: 100px;
+    color: var(--muted);
+    font-size: .76rem;
+    font-weight: 700;
+  }
+  .loan-table td:first-child::before { display: none; }
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 50, .45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+.modal-overlay.hidden { display: none; }
+.modal-box {
+  background: #fff;
+  border-radius: 24px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(20,20,60,.25);
+}
+.modal-secondary-btn {
+  background: #f1f0ff;
+  color: var(--ink);
+  border: none;
+  cursor: pointer;
+}
+.modal-close {
+  background: #f1f0ff;
+  color: var(--ink);
+  border: none;
+  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.reveal { animation: rise .5s ease both; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hidden { display: none !important; }
